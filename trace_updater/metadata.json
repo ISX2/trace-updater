@@ -16,14 +16,14 @@
           "name": "string"
         },
         "required": true,
-        "description": "The id of the graph-div whose traces should be updated.\n\n.. Note:\n\n  * if you use multiple graphs; each graph MUST have a unique id; otherwise we\n    cannot guarantee that resampling will work correctly.\n  * TraceUpdater will determine the html-graph-div by performing partial matching\n    on the \"id\" property (using `gdID`) of all divs with classname=\"dash-graph\".\n    It will select the first item of that match list; so if multiple same\n    graph-div IDs are used, or one graph-div-ID is a subset of the other (partial\n    matching) there is no guarantee that the correct div will be selected."
+        "description": "The id of the graph-div whose traces should be updated.\r\n\r\n.. Note:\r\n\r\n  * if you use multiple graphs; each graph MUST have a unique id; otherwise we\r\n    cannot guarantee that resampling will work correctly.\r\n  * TraceUpdater will determine the html-graph-div by performing partial matching\r\n    on the \"id\" property (using `gdID`) of all divs with classname=\"dash-graph\".\r\n    It will select the first item of that match list; so if multiple same\r\n    graph-div IDs are used, or one graph-div-ID is a subset of the other (partial\r\n    matching) there is no guarantee that the correct div will be selected."
       },
       "sequentialUpdate": {
         "type": {
           "name": "bool"
         },
         "required": false,
-        "description": "Bool indicating whether the figure should be redrawn sequentially (i.e.)\ncalling the restyle multiple times or at once.\n(still needs to be determined which is faster has the lowest memory peak),\nby default False.",
+        "description": "Bool indicating whether the figure should be redrawn sequentially (i.e.)\r\ncalling the restyle multiple times or at once.\r\n(still needs to be determined which is faster has the lowest memory peak),\r\nby default False.",
         "defaultValue": {
           "value": "false",
           "computed": false
@@ -34,14 +34,14 @@
           "name": "array"
         },
         "required": false,
-        "description": "The data to update the graph with, must contain the `index` property for\neach trace; either a list of dict-traces or a single trace"
+        "description": "The data to update the graph with, must contain the `index` property for\r\neach trace; either a list of dict-traces or a single trace"
       },
       "setProps": {
         "type": {
           "name": "func"
         },
         "required": false,
-        "description": "Dash-assigned callback that should be called to report property changes\nto Dash, to make them available for callbacks."
+        "description": "Dash-assigned callback that should be called to report property changes\r\nto Dash, to make them available for callbacks."
       }
     }
   }
