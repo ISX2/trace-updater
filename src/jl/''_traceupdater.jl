@@ -20,15 +20,17 @@ Keyword arguments:
     It will select the first item of that match list; so if multiple same
     graph-div IDs are used, or one graph-div-ID is a subset of the other (partial
     matching) there is no guarantee that the correct div will be selected.
+- `invisibleUpdateData` (Array; optional): The data to update the graph with, must contain the `index` property for
+each invisible trace; either a list of dict-traces or a single trace
 - `sequentialUpdate` (Bool; optional): Bool indicating whether the figure should be redrawn sequentially (i.e.)
 calling the restyle multiple times or at once.
 (still needs to be determined which is faster has the lowest memory peak),
 by default False.
-- `updateData` (Array; optional): The data to update the graph with, must contain the `index` property for
+- `visibleUpdateData` (Array; optional): The data to update the graph with, must contain the `index` property for
 each trace; either a list of dict-traces or a single trace
 """
 function ''_traceupdater(; kwargs...)
-        available_props = Symbol[:id, :gdID, :sequentialUpdate, :updateData]
+        available_props = Symbol[:id, :gdID, :invisibleUpdateData, :sequentialUpdate, :visibleUpdateData]
         wild_props = Symbol[]
         return Component("''_traceupdater", "TraceUpdater", "trace_updater", available_props, wild_props; kwargs...)
 end

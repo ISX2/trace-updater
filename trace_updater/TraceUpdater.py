@@ -24,13 +24,18 @@ Keyword arguments:
     of the other (partial      matching) there is no guarantee that
     the correct div will be selected.
 
+- invisibleUpdateData (list; optional):
+    The data to update the graph with, must contain the `index`
+    property for  each invisible trace; either a list of dict-traces
+    or a single trace.
+
 - sequentialUpdate (boolean; default False):
     Bool indicating whether the figure should be redrawn sequentially
     (i.e.)  calling the restyle multiple times or at once.  (still
     needs to be determined which is faster has the lowest memory
     peak),  by default False.
 
-- updateData (list; optional):
+- visibleUpdateData (list; optional):
     The data to update the graph with, must contain the `index`
     property for  each trace; either a list of dict-traces or a single
     trace."""
@@ -39,10 +44,10 @@ Keyword arguments:
     _namespace = 'trace_updater'
     _type = 'TraceUpdater'
     @_explicitize_args
-    def __init__(self, id=Component.UNDEFINED, gdID=Component.REQUIRED, sequentialUpdate=Component.UNDEFINED, updateData=Component.UNDEFINED, **kwargs):
-        self._prop_names = ['id', 'gdID', 'sequentialUpdate', 'updateData']
+    def __init__(self, id=Component.UNDEFINED, gdID=Component.REQUIRED, sequentialUpdate=Component.UNDEFINED, visibleUpdateData=Component.UNDEFINED, invisibleUpdateData=Component.UNDEFINED, **kwargs):
+        self._prop_names = ['id', 'gdID', 'invisibleUpdateData', 'sequentialUpdate', 'visibleUpdateData']
         self._valid_wildcard_attributes =            []
-        self.available_properties = ['id', 'gdID', 'sequentialUpdate', 'updateData']
+        self.available_properties = ['id', 'gdID', 'invisibleUpdateData', 'sequentialUpdate', 'visibleUpdateData']
         self.available_wildcard_properties =            []
         _explicit_args = kwargs.pop('_explicit_args')
         _locals = locals()

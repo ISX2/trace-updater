@@ -29,12 +29,19 @@
           "computed": false
         }
       },
-      "updateData": {
+      "visibleUpdateData": {
         "type": {
           "name": "array"
         },
         "required": false,
         "description": "The data to update the graph with, must contain the `index` property for\r\neach trace; either a list of dict-traces or a single trace"
+      },
+      "invisibleUpdateData": {
+        "type": {
+          "name": "array"
+        },
+        "required": false,
+        "description": "The data to update the graph with, must contain the `index` property for\r\neach invisible trace; either a list of dict-traces or a single trace"
       },
       "setProps": {
         "type": {

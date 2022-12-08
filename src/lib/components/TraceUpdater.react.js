@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import {Component} from 'react';
 import PropTypes from 'prop-types';
 import {
     head,
@@ -13,12 +13,13 @@ import {
     mapValues,
     zipObject,
     isElement,
-    uniq
+    uniq,
+    nth,
 } from 'lodash';
 
 
 // HELPER FUNCTIONS //
-const plotlyRestyle = (graphDiv, { index, ...update }) =>
+const plotlyRestyle = (graphDiv, {index, ...update}) =>
     Plotly.restyle(graphDiv, update, index);
 
 const isValidTrace = (trace) =>
@@ -27,7 +28,7 @@ const isValidTrace = (trace) =>
 const filterTrace = (trace) => fromPairs(
     toPairs(trace)
         .filter(([_, value]) => !isNil(value))
-        .filter(([key, _]) => !['x', 'y'].includes(key) || trace.x !== [])
+        .filter(([key, _]) => !['x', 'y'].includes(key) || trace.x !== []),
 );
 
 const filterTraces = (traces) =>
@@ -50,8 +51,8 @@ const mergeKeys = (traces) =>
 const mergeValues = (traces, allkeys) =>
     allkeys.map(
         key => traces.map(
-            trace => trace[key] ?? []
-        )
+            trace => trace[key] ?? [],
+        ),
     );
 
 const mergeTraces = (traces) => {
@@ -67,25 +68,52 @@ const mergeTraces = (traces) => {
 export default class TraceUpdater extends Component {
 
     static #previousLayout = null;
+    static #latestUpdate = null;
 
-    shouldComponentUpdate({ updateData }) {
-        return isArray(updateData) && TraceUpdater.#previousLayout !== head(updateData);
+    shouldComponentUpdate({visibleUpdateData, invisibleUpdateData}) {
+        // console.log("checking if the update should go through")
+        if ((isArray(visibleUpdateData) && TraceUpdater.#previousLayout !== head(visibleUpdateData) && visibleUpdateData !== this.props.visibleUpdateData)) {
+            TraceUpdater.#latestUpdate = 'visible';
+            // console.log('visible was changed');
+            // console.log(visibleUpdateData !== this.props.visibleUpdateData);
+            // console.log(TraceUpdater.#latestUpdate);
+            return true;
+        } else if (isArray(invisibleUpdateData) && invisibleUpdateData !== this.props.invisibleUpdateData) {
+            TraceUpdater.#latestUpdate = 'invisible';
+            // console.log('invisible was changed');
+            // console.log(invisibleUpdateData);
+            // console.log(invisibleUpdateData !== this.props.invisibleUpdateData);
+            return true;
+        }
+        // return ((isArray(visibleUpdateData) && TraceUpdater.#previousLayout !== head(visibleUpdateData)) || (isArray(invisibleUpdateData) && TraceUpdater.#previousLayout === head(invisibleUpdateData)));
+        TraceUpdater.#latestUpdate = null;
+        return false;
     }
+
 
     render() {
         // VALIDATION //
-        const { id, gdID, sequentialUpdate, updateData } = this.props;
+        const {
+            id,
+            gdID,
+            sequentialUpdate,
+            visibleUpdateData,
+            invisibleUpdateData,
+            visibleUpdates,
+            invisibleUpdates,
+            setProps,
+        } = this.props;
         const idDiv = <div id={id}></div>;
-        if (!this.shouldComponentUpdate(this.props)) {
+        if (!TraceUpdater.#latestUpdate) {
             return idDiv;
         }
 
         // see this link for more information https://stackoverflow.com/a/34002028
         let graphDiv = document?.querySelectorAll('div[id*="' + gdID + '"][class*="dash-graph"]');
         if (graphDiv.length > 1) {
-            throw new SyntaxError("TraceUpdater: multiple graphs with ID=\"" + gdID + "\" found; n=" + graphDiv.length + " \n(either multiple graphs with same ID's or current ID is a str-subset of other graph IDs)");
+            throw new SyntaxError('TraceUpdater: multiple graphs with ID="' + gdID + '" found; n=' + graphDiv.length + ' \n(either multiple graphs with same ID\'s or current ID is a str-subset of other graph IDs)');
         } else if (graphDiv.length < 1) {
-            throw new SyntaxError("TraceUpdater: no graphs with ID=\"" + gdID + "\" found");
+            throw new SyntaxError('TraceUpdater: no graphs with ID="' + gdID + '" found');
         }
 
         graphDiv = graphDiv?.[0]?.getElementsByClassName('js-plotly-plot')?.[0];
@@ -93,35 +121,25 @@ export default class TraceUpdater extends Component {
             throw new Error(`Invalid gdID '${gdID}'`);
         }
 
-        // Query the visible state from the graph and first update the visible indices
-        let visible_indices = [];
-        graphDiv.data.forEach((trace, index) => {
-            if (trace.visible == true || trace.visible == undefined) {
-                visible_indices.push(index);
-            }
-        });
-        // console.log("visible_indices: " + visible_indices);
-
-
-        // EXECUTION //
-        TraceUpdater.#previousLayout = head(updateData);
-        // Split the updateData into visible and invisible traces
-        const visibleTraces = filterTraces(tail(updateData).filter(trace => visible_indices.includes(trace.index)));
-        const invisibleTraces = filterTraces(tail(updateData).filter(trace => !visible_indices.includes(trace.index)));
-
-        // First update the visible traces, then the invisible ones
-        if (sequentialUpdate) {
-            formatTraces(visibleTraces).forEach(trace => plotlyRestyle(graphDiv, trace));
-            formatTraces(invisibleTraces).forEach(trace => plotlyRestyle(graphDiv, trace));
-        } else {
-            if (visibleTraces.length > 0) {
-                plotlyRestyle(graphDiv, mergeTraces(visibleTraces));
-            }
-            if (invisibleTraces.length > 0) {
-                plotlyRestyle(graphDiv, mergeTraces(invisibleTraces));
-            }
+        let traces;
+        // console.log(`visibleUpdates: ${visibleUpdates} & invisibleUpdates: ${invisibleUpdates}`);
+        //check the visible traces have been updated yet
+        if (TraceUpdater.#latestUpdate === 'invisible') {
+            // console.log('time to update the invisibles');
+            traces = filterTraces(tail(invisibleUpdateData));
+            setProps({invisibleUpdates: invisibleUpdates + 1});
         }
-
+        if (TraceUpdater.#latestUpdate === 'visible') {
+            // console.log('time to update the visibles');
+            TraceUpdater.#previousLayout = head(visibleUpdateData);
+            traces = filterTraces(tail(visibleUpdateData));
+        }
+        // EXECUTION //
+        if (sequentialUpdate) {
+            formatTraces(traces).forEach(trace => plotlyRestyle(graphDiv, trace));
+        } else {
+            plotlyRestyle(graphDiv, mergeTraces(traces));
+        }
         return idDiv;
     }
 }
@@ -151,6 +169,16 @@ TraceUpdater.propTypes = {
      */
     gdID: PropTypes.string.isRequired,
 
+    // /**
+    //  * Counter keeping track of how many updates were made on the visible traces
+    //  */
+    // visibleUpdates: PropTypes.number,
+    //
+    // /**
+    //  * Counter keeping track of how many updates were made on the invisible traces
+    //  */
+    // invisibleUpdates: PropTypes.number,
+
     /**
      * Bool indicating whether the figure should be redrawn sequentially (i.e.)
      * calling the restyle multiple times or at once.
@@ -163,11 +191,18 @@ TraceUpdater.propTypes = {
      * The data to update the graph with, must contain the `index` property for
      * each trace; either a list of dict-traces or a single trace
      */
-    updateData: PropTypes.array,
+    visibleUpdateData: PropTypes.array,
+
+    /**
+     * The data to update the graph with, must contain the `index` property for
+     * each invisible trace; either a list of dict-traces or a single trace
+     */
+    invisibleUpdateData: PropTypes.array,
+
 
     /**
      * Dash-assigned callback that should be called to report property changes
      * to Dash, to make them available for callbacks.
      */
-    setProps: PropTypes.func
+    setProps: PropTypes.func,
 };
