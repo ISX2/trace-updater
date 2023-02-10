@@ -35,6 +35,10 @@ Keyword arguments:
     needs to be determined which is faster has the lowest memory
     peak),  by default False.
 
+- visibleUpdate (number; optional):
+    Counter property meant to be the trigger for chained callback,
+    will only  be updated after the visibleUpdateData changed.
+
 - visibleUpdateData (list; optional):
     The data to update the graph with, must contain the `index`
     property for  each trace; either a list of dict-traces or a single
@@ -44,10 +48,10 @@ Keyword arguments:
     _namespace = 'trace_updater'
     _type = 'TraceUpdater'
     @_explicitize_args
-    def __init__(self, id=Component.UNDEFINED, gdID=Component.REQUIRED, sequentialUpdate=Component.UNDEFINED, visibleUpdateData=Component.UNDEFINED, invisibleUpdateData=Component.UNDEFINED, **kwargs):
-        self._prop_names = ['id', 'gdID', 'invisibleUpdateData', 'sequentialUpdate', 'visibleUpdateData']
+    def __init__(self, id=Component.UNDEFINED, gdID=Component.REQUIRED, sequentialUpdate=Component.UNDEFINED, visibleUpdateData=Component.UNDEFINED, invisibleUpdateData=Component.UNDEFINED, visibleUpdate=Component.UNDEFINED, **kwargs):
+        self._prop_names = ['id', 'gdID', 'invisibleUpdateData', 'sequentialUpdate', 'visibleUpdate', 'visibleUpdateData']
         self._valid_wildcard_attributes =            []
-        self.available_properties = ['id', 'gdID', 'invisibleUpdateData', 'sequentialUpdate', 'visibleUpdateData']
+        self.available_properties = ['id', 'gdID', 'invisibleUpdateData', 'sequentialUpdate', 'visibleUpdate', 'visibleUpdateData']
         self.available_wildcard_properties =            []
         _explicit_args = kwargs.pop('_explicit_args')
         _locals = locals()

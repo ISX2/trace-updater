@@ -26,11 +26,13 @@ each invisible trace; either a list of dict-traces or a single trace
 calling the restyle multiple times or at once.
 (still needs to be determined which is faster has the lowest memory peak),
 by default False.
+- `visibleUpdate` (Real; optional): Counter property meant to be the trigger for chained callback, will only
+be updated after the visibleUpdateData changed
 - `visibleUpdateData` (Array; optional): The data to update the graph with, must contain the `index` property for
 each trace; either a list of dict-traces or a single trace
 """
 function ''_traceupdater(; kwargs...)
-        available_props = Symbol[:id, :gdID, :invisibleUpdateData, :sequentialUpdate, :visibleUpdateData]
+        available_props = Symbol[:id, :gdID, :invisibleUpdateData, :sequentialUpdate, :visibleUpdate, :visibleUpdateData]
         wild_props = Symbol[]
         return Component("''_traceupdater", "TraceUpdater", "trace_updater", available_props, wild_props; kwargs...)
 end

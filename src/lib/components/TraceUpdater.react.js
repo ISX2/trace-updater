@@ -70,6 +70,12 @@ export default class TraceUpdater extends Component {
     static #previousLayout = null;
     static #latestUpdate = null;
 
+    constructor(props) {
+        super(props);
+        this.visibleUpdate = 0;
+    }
+
+
     shouldComponentUpdate({visibleUpdateData, invisibleUpdateData}) {
         // console.log("checking if the update should go through")
         if ((isArray(visibleUpdateData) && TraceUpdater.#previousLayout !== head(visibleUpdateData) && visibleUpdateData !== this.props.visibleUpdateData)) {
@@ -99,8 +105,7 @@ export default class TraceUpdater extends Component {
             sequentialUpdate,
             visibleUpdateData,
             invisibleUpdateData,
-            visibleUpdates,
-            invisibleUpdates,
+            visibleUpdate,
             setProps,
         } = this.props;
         const idDiv = <div id={id}></div>;
@@ -122,17 +127,18 @@ export default class TraceUpdater extends Component {
         }
 
         let traces;
-        // console.log(`visibleUpdates: ${visibleUpdates} & invisibleUpdates: ${invisibleUpdates}`);
-        //check the visible traces have been updated yet
         if (TraceUpdater.#latestUpdate === 'invisible') {
             // console.log('time to update the invisibles');
             traces = filterTraces(tail(invisibleUpdateData));
-            setProps({invisibleUpdates: invisibleUpdates + 1});
+
         }
         if (TraceUpdater.#latestUpdate === 'visible') {
             // console.log('time to update the visibles');
             TraceUpdater.#previousLayout = head(visibleUpdateData);
             traces = filterTraces(tail(visibleUpdateData));
+            //measure of precaution since this.props.visibleUpdate is undefined at first :grin:
+            setProps({visibleUpdate: visibleUpdate + 1 || this.visibleUpdate + 1});
+
         }
         // EXECUTION //
         if (sequentialUpdate) {
@@ -169,16 +175,6 @@ TraceUpdater.propTypes = {
      */
     gdID: PropTypes.string.isRequired,
 
-    // /**
-    //  * Counter keeping track of how many updates were made on the visible traces
-    //  */
-    // visibleUpdates: PropTypes.number,
-    //
-    // /**
-    //  * Counter keeping track of how many updates were made on the invisible traces
-    //  */
-    // invisibleUpdates: PropTypes.number,
-
     /**
      * Bool indicating whether the figure should be redrawn sequentially (i.e.)
      * calling the restyle multiple times or at once.
@@ -199,6 +195,11 @@ TraceUpdater.propTypes = {
      */
     invisibleUpdateData: PropTypes.array,
 
+    /**
+     * Counter property meant to be the trigger for chained callback, will only
+     * be updated after the visibleUpdateData changed
+     */
+    visibleUpdate: PropTypes.number,
 
     /**
      * Dash-assigned callback that should be called to report property changes
