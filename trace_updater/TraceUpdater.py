@@ -35,6 +35,11 @@ Keyword arguments:
     needs to be determined which is faster has the lowest memory
     peak),  by default False.
 
+- verbose (boolean; default False):
+    Flag that turns on console timing. The timer for the visible
+    update  should be started externally (with a webdriver or a JS
+    script in Python)  so the internal render timing can work.
+
 - visibleUpdate (number; optional):
     Counter property meant to be the trigger for chained callback,
     will only  be updated after the visibleUpdateData changed.
@@ -48,10 +53,10 @@ Keyword arguments:
     _namespace = 'trace_updater'
     _type = 'TraceUpdater'
     @_explicitize_args
-    def __init__(self, id=Component.UNDEFINED, gdID=Component.REQUIRED, sequentialUpdate=Component.UNDEFINED, visibleUpdateData=Component.UNDEFINED, invisibleUpdateData=Component.UNDEFINED, visibleUpdate=Component.UNDEFINED, **kwargs):
-        self._prop_names = ['id', 'gdID', 'invisibleUpdateData', 'sequentialUpdate', 'visibleUpdate', 'visibleUpdateData']
+    def __init__(self, id=Component.UNDEFINED, gdID=Component.REQUIRED, sequentialUpdate=Component.UNDEFINED, visibleUpdateData=Component.UNDEFINED, invisibleUpdateData=Component.UNDEFINED, visibleUpdate=Component.UNDEFINED, verbose=Component.UNDEFINED, **kwargs):
+        self._prop_names = ['id', 'gdID', 'invisibleUpdateData', 'sequentialUpdate', 'verbose', 'visibleUpdate', 'visibleUpdateData']
         self._valid_wildcard_attributes =            []
-        self.available_properties = ['id', 'gdID', 'invisibleUpdateData', 'sequentialUpdate', 'visibleUpdate', 'visibleUpdateData']
+        self.available_properties = ['id', 'gdID', 'invisibleUpdateData', 'sequentialUpdate', 'verbose', 'visibleUpdate', 'visibleUpdateData']
         self.available_wildcard_properties =            []
         _explicit_args = kwargs.pop('_explicit_args')
         _locals = locals()

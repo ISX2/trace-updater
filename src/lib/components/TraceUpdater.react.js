@@ -69,6 +69,7 @@ export default class TraceUpdater extends Component {
 
     static #previousLayout = null;
     static #latestUpdate = null;
+    static #valid = false;
 
     constructor(props) {
         super(props);
@@ -77,22 +78,52 @@ export default class TraceUpdater extends Component {
 
 
     shouldComponentUpdate({visibleUpdateData, invisibleUpdateData}) {
-        // console.log("checking if the update should go through")
+        //check for valid changes in the visible data
         if ((isArray(visibleUpdateData) && TraceUpdater.#previousLayout !== head(visibleUpdateData) && visibleUpdateData !== this.props.visibleUpdateData)) {
-            TraceUpdater.#latestUpdate = 'visible';
-            // console.log('visible was changed');
-            // console.log(visibleUpdateData !== this.props.visibleUpdateData);
+
+            // console.log(visibleUpdateData.length < this.props.visibleUpdateData?.length);
             // console.log(TraceUpdater.#latestUpdate);
-            return true;
-        } else if (isArray(invisibleUpdateData) && invisibleUpdateData !== this.props.invisibleUpdateData) {
-            TraceUpdater.#latestUpdate = 'invisible';
-            // console.log('invisible was changed');
-            // console.log(invisibleUpdateData);
-            // console.log(invisibleUpdateData !== this.props.invisibleUpdateData);
+
+            // this is only needed when benchmarking
+            if (this.props.verbose){
+                // check if we're going from no hidden traces to some hidden traces (== less visibleUpdateData coming after an 'empty invisible' update)
+                if (TraceUpdater.#latestUpdate === 'empty invisible' && visibleUpdateData.length < this.props.visibleUpdateData?.length){
+                    TraceUpdater.#latestUpdate = 'incomplete visible'
+                } else {
+                    TraceUpdater.#latestUpdate = 'visible';
+                }
+
+                // console.log(TraceUpdater.#latestUpdate);
+            } else {
+                // visible by default
+                TraceUpdater.#latestUpdate = 'visible';
+            }
+            console.time('render time (visible)');
+            TraceUpdater.#valid = true;
             return true;
         }
-        // return ((isArray(visibleUpdateData) && TraceUpdater.#previousLayout !== head(visibleUpdateData)) || (isArray(invisibleUpdateData) && TraceUpdater.#previousLayout === head(invisibleUpdateData)));
-        TraceUpdater.#latestUpdate = null;
+        //find a condition that covers when the invisible update is empty... but the visible update data is COMPLETE
+        else if (TraceUpdater.#latestUpdate === 'visible' && !invisibleUpdateData && this.props.verbose){
+            console.timeEnd('time (invisible)');
+            console.timeEnd('time (full)');
+
+            TraceUpdater.#latestUpdate = 'empty invisible';
+            console.log('render time (invisible): None');
+            TraceUpdater.#valid = false;
+
+            return false;
+        }
+        else if (isArray(invisibleUpdateData) && invisibleUpdateData !== this.props.invisibleUpdateData) {
+            TraceUpdater.#latestUpdate = 'invisible';
+            console.time('render time (invisible)');
+            // console.log('invisible was changed');
+            TraceUpdater.#valid = true;
+
+            return true;
+        }
+        //removed statement that reverts the change back to null every time
+        TraceUpdater.#valid = false;
+
         return false;
     }
 
@@ -106,10 +137,11 @@ export default class TraceUpdater extends Component {
             visibleUpdateData,
             invisibleUpdateData,
             visibleUpdate,
+            verbose,
             setProps,
         } = this.props;
         const idDiv = <div id={id}></div>;
-        if (!TraceUpdater.#latestUpdate) {
+        if (!TraceUpdater.#valid) {
             return idDiv;
         }
 
@@ -132,7 +164,7 @@ export default class TraceUpdater extends Component {
             traces = filterTraces(tail(invisibleUpdateData));
 
         }
-        if (TraceUpdater.#latestUpdate === 'visible') {
+        if (TraceUpdater.#latestUpdate === 'visible' || TraceUpdater.#latestUpdate === 'incomplete visible') {
             // console.log('time to update the visibles');
             TraceUpdater.#previousLayout = head(visibleUpdateData);
             traces = filterTraces(tail(visibleUpdateData));
@@ -146,12 +178,28 @@ export default class TraceUpdater extends Component {
         } else {
             plotlyRestyle(graphDiv, mergeTraces(traces));
         }
+
+        if (verbose) {
+            if (TraceUpdater.#latestUpdate === 'visible' || TraceUpdater.#latestUpdate === 'incomplete visible') {
+                console.timeEnd('time (visible)');
+                console.timeEnd('render time (visible)');
+                // console.log('zoom in (invisible)');
+                console.time('time (invisible)');
+
+            }
+            if (TraceUpdater.#latestUpdate === 'invisible') {
+                console.timeEnd('time (invisible)');
+                console.timeEnd('render time (invisible)');
+                console.timeEnd('time (full)');
+            }
+        }
         return idDiv;
     }
 }
 
 TraceUpdater.defaultProps = {
     sequentialUpdate: false,
+    verbose: false
 };
 
 TraceUpdater.propTypes = {
@@ -200,6 +248,13 @@ TraceUpdater.propTypes = {
      * be updated after the visibleUpdateData changed
      */
     visibleUpdate: PropTypes.number,
+
+    /**
+     * Flag that turns on console timing. The timer for the visible update
+     * should be started externally (with a webdriver or a JS script in Python)
+     * so the internal render timing can work.
+     */
+    verbose: PropTypes.bool,
 
     /**
      * Dash-assigned callback that should be called to report property changes

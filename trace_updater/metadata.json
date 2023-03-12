@@ -50,6 +50,17 @@
         "required": false,
         "description": "Counter property meant to be the trigger for chained callback, will only\r\nbe updated after the visibleUpdateData changed"
       },
+      "verbose": {
+        "type": {
+          "name": "bool"
+        },
+        "required": false,
+        "description": "Flag that turns on console timing. The timer for the visible update\r\nshould be started externally (with a webdriver or a JS script in Python)\r\nso the internal render timing can work.",
+        "defaultValue": {
+          "value": "false",
+          "computed": false
+        }
+      },
       "setProps": {
         "type": {
           "name": "func"
