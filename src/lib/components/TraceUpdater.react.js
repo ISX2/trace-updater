@@ -14,7 +14,6 @@ import {
     zipObject,
     isElement,
     uniq,
-    nth,
 } from 'lodash';
 
 
@@ -77,28 +76,28 @@ export default class TraceUpdater extends Component {
     }
 
 
-    shouldComponentUpdate({visibleUpdateData, invisibleUpdateData}) {
+    shouldComponentUpdate({updateData, invisibleUpdateData}) {
         //check for valid changes in the visible data
-        if ((isArray(visibleUpdateData) && TraceUpdater.#previousLayout !== head(visibleUpdateData) && visibleUpdateData !== this.props.visibleUpdateData)) {
+        if ((isArray(updateData) && TraceUpdater.#previousLayout !== head(updateData) && updateData !== this.props.updateData)) {
 
-            // console.log(visibleUpdateData.length < this.props.visibleUpdateData?.length);
+            // console.log(updateData.length < this.props.updateData?.length);
             // console.log(TraceUpdater.#latestUpdate);
 
             // this is only needed when benchmarking
             if (this.props.verbose){
-                // check if we're going from no hidden traces to some hidden traces (== less visibleUpdateData coming after an 'empty invisible' update)
-                if (TraceUpdater.#latestUpdate === 'empty invisible' && visibleUpdateData.length < this.props.visibleUpdateData?.length){
-                    TraceUpdater.#latestUpdate = 'incomplete visible'
+                // check if we're going from no hidden traces to some hidden traces (== less updateData coming after an 'empty invisible' update)
+                if (TraceUpdater.#latestUpdate === 'empty invisible' && updateData.length < this.props.updateData?.length){
+                    TraceUpdater.#latestUpdate = 'incomplete visible';
                 } else {
                     TraceUpdater.#latestUpdate = 'visible';
                 }
+                console.time('render time (visible)');
 
                 // console.log(TraceUpdater.#latestUpdate);
             } else {
                 // visible by default
                 TraceUpdater.#latestUpdate = 'visible';
             }
-            console.time('render time (visible)');
             TraceUpdater.#valid = true;
             return true;
         }
@@ -113,9 +112,11 @@ export default class TraceUpdater extends Component {
 
             return false;
         }
-        else if (isArray(invisibleUpdateData) && invisibleUpdateData !== this.props.invisibleUpdateData) {
+        else if (isArray(invisibleUpdateData) && invisibleUpdateData !== this.props.invisibleUpdateData ) {
+            if (this.props.verbose) {
+                console.time('render time (invisible)');
+            }
             TraceUpdater.#latestUpdate = 'invisible';
-            console.time('render time (invisible)');
             // console.log('invisible was changed');
             TraceUpdater.#valid = true;
 
@@ -134,7 +135,7 @@ export default class TraceUpdater extends Component {
             id,
             gdID,
             sequentialUpdate,
-            visibleUpdateData,
+            updateData,
             invisibleUpdateData,
             visibleUpdate,
             verbose,
@@ -166,8 +167,8 @@ export default class TraceUpdater extends Component {
         }
         if (TraceUpdater.#latestUpdate === 'visible' || TraceUpdater.#latestUpdate === 'incomplete visible') {
             // console.log('time to update the visibles');
-            TraceUpdater.#previousLayout = head(visibleUpdateData);
-            traces = filterTraces(tail(visibleUpdateData));
+            TraceUpdater.#previousLayout = head(updateData);
+            traces = filterTraces(tail(updateData));
             //measure of precaution since this.props.visibleUpdate is undefined at first :grin:
             setProps({visibleUpdate: visibleUpdate + 1 || this.visibleUpdate + 1});
 
@@ -199,7 +200,7 @@ export default class TraceUpdater extends Component {
 
 TraceUpdater.defaultProps = {
     sequentialUpdate: false,
-    verbose: false
+    verbose: false,
 };
 
 TraceUpdater.propTypes = {
@@ -235,7 +236,7 @@ TraceUpdater.propTypes = {
      * The data to update the graph with, must contain the `index` property for
      * each trace; either a list of dict-traces or a single trace
      */
-    visibleUpdateData: PropTypes.array,
+    updateData: PropTypes.array,
 
     /**
      * The data to update the graph with, must contain the `index` property for
@@ -245,7 +246,7 @@ TraceUpdater.propTypes = {
 
     /**
      * Counter property meant to be the trigger for chained callback, will only
-     * be updated after the visibleUpdateData changed
+     * be updated after the updateData changed
      */
     visibleUpdate: PropTypes.number,
 

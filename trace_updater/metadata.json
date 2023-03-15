@@ -29,7 +29,7 @@
           "computed": false
         }
       },
-      "visibleUpdateData": {
+      "updateData": {
         "type": {
           "name": "array"
         },
@@ -48,7 +48,7 @@
           "name": "number"
         },
         "required": false,
-        "description": "Counter property meant to be the trigger for chained callback, will only\r\nbe updated after the visibleUpdateData changed"
+        "description": "Counter property meant to be the trigger for chained callback, will only\r\nbe updated after the updateData changed"
       },
       "verbose": {
         "type": {
